@@ -390,7 +390,7 @@ function generateHtml(tokensByNetwork) {
     <div class="stats">
       <div class="stat-item">
         <div class="stat-value">${totalTokens}</div>
-        <div class="stat-label">Total Tokens</div>
+        <div class="stat-label">Registered</div>
       </div>
       <div class="stat-item">
         <div class="stat-value">${prodTokens.length}</div>
@@ -410,7 +410,7 @@ function generateHtml(tokensByNetwork) {
           </h2>
           <span class="network-id">Network ID: 15215628</span>
         </div>
-        <span class="token-count">${prodTokens.length} tokens</span>
+        <span class="token-count">${prodTokens.length} registered</span>
       </div>
       <table>
         <thead>
@@ -437,7 +437,7 @@ function generateHtml(tokensByNetwork) {
           </h2>
           <span class="network-id">Network ID: 1939510133</span>
         </div>
-        <span class="token-count">${testnetTokens.length} tokens</span>
+        <span class="token-count">${testnetTokens.length} registered</span>
       </div>
       <table>
         <thead>
