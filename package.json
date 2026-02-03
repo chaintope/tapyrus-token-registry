@@ -24,5 +24,8 @@
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@noble/secp256k1": "^2.1.0"
   }
 }

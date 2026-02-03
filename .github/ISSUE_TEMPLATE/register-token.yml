@@ -31,6 +31,15 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: payment_base
+    attributes:
+      label: Payment Base
+      description: "Payment Base public key used to derive the Color ID (33 bytes compressed, hex)"
+      placeholder: "02a1b2c3d4e5f6..."
+    validations:
+      required: true
+
   - type: textarea
     id: metadata
     attributes:
