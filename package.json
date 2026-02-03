@@ -1,0 +1,28 @@
+{
+  "name": "tapyrus-token-registry",
+  "version": "1.0.0",
+  "description": "TIP-0020 compliant token metadata registry for Tapyrus colored coins",
+  "main": "scripts/register-token.js",
+  "scripts": {
+    "register": "node scripts/register-token.js",
+    "update-index": "node scripts/update-index.js",
+    "test": "node scripts/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tapyrus/tapyrus-token-registry.git"
+  },
+  "keywords": [
+    "tapyrus",
+    "blockchain",
+    "colored-coins",
+    "token",
+    "registry",
+    "tip-0020"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

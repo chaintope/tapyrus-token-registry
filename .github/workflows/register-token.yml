@@ -1,0 +1,129 @@
+name: Register Token
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  register:
+    if: contains(github.event.issue.labels.*.name, 'token-registration')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Parse and validate token metadata
+        id: validate
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          node scripts/register-token.js
+        continue-on-error: true
+
+      - name: Comment on validation failure
+        if: steps.validate.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let errorMessage = 'Validation error occurred.';
+            try {
+              if (fs.existsSync('validation-error.txt')) {
+                errorMessage = fs.readFileSync('validation-error.txt', 'utf8');
+              }
+            } catch (e) {
+              console.error('Error reading validation error file:', e);
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Registration Error\n\n${errorMessage}\n\nPlease edit the issue and try again.`
+            });
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['validation-failed']
+            });
+
+      - name: Commit and push token metadata
+        if: steps.validate.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Get network and color_id from the generated files
+          NETWORK=$(cat token-network.txt)
+          COLOR_ID=$(cat token-color-id.txt)
+
+          if [ -n "$COLOR_ID" ] && [ -n "$NETWORK" ]; then
+            # Update index.html
+            node scripts/update-index.js
+
+            git add docs/
+            git commit -m "Register token: ${COLOR_ID} (${NETWORK})" || echo "No changes to commit"
+            git push
+          fi
+
+      - name: Comment on success
+        if: steps.validate.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let colorId = '';
+            let networkId = '';
+            let networkName = '';
+            try {
+              colorId = fs.readFileSync('token-color-id.txt', 'utf8').trim();
+              networkId = fs.readFileSync('token-network.txt', 'utf8').trim();
+              networkName = fs.readFileSync('token-network-name.txt', 'utf8').trim();
+            } catch (e) {
+              console.error('Error reading token info files:', e);
+            }
+
+            const baseUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}`;
+            const metadataUrl = `${baseUrl}/tokens/${networkId}/${colorId}.json`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Registration Complete\n\nToken metadata has been successfully registered.\n\n**Network:** ${networkName} (Network ID: ${networkId})\n**Color ID:** \`${colorId}\`\n**Metadata URL:** ${metadataUrl}\n\nYou can use this URL in wallets and applications.`
+            });
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
+
+            // Use network label for GitHub label (prod or testnet)
+            const networkLabel = networkId === '15215628' ? 'prod' : 'testnet';
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['registered', networkLabel]
+            });

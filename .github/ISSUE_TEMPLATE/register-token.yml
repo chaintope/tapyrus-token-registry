@@ -1,0 +1,183 @@
+name: Token Registration
+description: Register metadata for Tapyrus colored coins
+title: "[Token Registration] "
+labels: ["token-registration"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Tapyrus Token Registry Registration Form
+        Register token metadata compliant with TIP-0020 specification.
+
+  - type: dropdown
+    id: network
+    attributes:
+      label: Network
+      description: "Select the network where the token is issued (TIP-0044 compliant)"
+      options:
+        - "Tapyrus API (prod) - Network ID: 15215628"
+        - "Tapyrus Testnet - Network ID: 1939510133"
+    validations:
+      required: true
+
+  - type: input
+    id: color_id
+    attributes:
+      label: Color ID
+      description: "Token Color ID (c1/c2/c3 prefix + 64 hex characters)"
+      placeholder: "c1a1b2c3d4e5f6..."
+    validations:
+      required: true
+
+  - type: input
+    id: name
+    attributes:
+      label: Token Name
+      description: "Name of the token (max 64 characters)"
+      placeholder: "Example Token"
+    validations:
+      required: true
+
+  - type: input
+    id: symbol
+    attributes:
+      label: Symbol
+      description: "Token symbol (max 12 characters)"
+      placeholder: "EXT"
+    validations:
+      required: true
+
+  - type: input
+    id: decimals
+    attributes:
+      label: Decimals
+      description: "Number of decimal places (0-18, default: 0)"
+      placeholder: "8"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: "Token description (max 256 characters)"
+      placeholder: "This token is..."
+    validations:
+      required: false
+
+  - type: input
+    id: icon
+    attributes:
+      label: Icon URL
+      description: "Token icon URL (HTTPS required)"
+      placeholder: "https://example.com/icon.png"
+    validations:
+      required: false
+
+  - type: input
+    id: website
+    attributes:
+      label: Website
+      description: "Project website URL (HTTPS required)"
+      placeholder: "https://example.com"
+    validations:
+      required: false
+
+  - type: input
+    id: terms
+    attributes:
+      label: Terms of Service URL
+      description: "Terms of service URL (HTTPS required)"
+      placeholder: "https://example.com/terms"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## Issuer Information
+
+  - type: input
+    id: issuer_name
+    attributes:
+      label: Issuer Name
+      description: "Name of the token issuer"
+      placeholder: "Example Corp"
+    validations:
+      required: false
+
+  - type: input
+    id: issuer_url
+    attributes:
+      label: Issuer URL
+      description: "Issuer's website URL (HTTPS required)"
+      placeholder: "https://example.com"
+    validations:
+      required: false
+
+  - type: input
+    id: issuer_email
+    attributes:
+      label: Issuer Email
+      description: "Issuer's contact email address"
+      placeholder: "contact@example.com"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## NFT Extension Fields (c3 tokens only)
+
+  - type: input
+    id: image
+    attributes:
+      label: Image URL
+      description: "NFT image URL (HTTPS required)"
+      placeholder: "https://example.com/nft.png"
+    validations:
+      required: false
+
+  - type: input
+    id: animation_url
+    attributes:
+      label: Animation URL
+      description: "NFT animation URL (HTTPS required)"
+      placeholder: "https://example.com/animation.mp4"
+    validations:
+      required: false
+
+  - type: input
+    id: external_url
+    attributes:
+      label: External URL
+      description: "NFT external link URL (HTTPS required)"
+      placeholder: "https://example.com/nft/1"
+    validations:
+      required: false
+
+  - type: textarea
+    id: attributes
+    attributes:
+      label: Attributes (JSON format)
+      description: "NFT attributes in JSON array format"
+      placeholder: |
+        [
+          {"trait_type": "Color", "value": "Blue"},
+          {"trait_type": "Size", "value": "Large"}
+        ]
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      description: Please confirm the following
+      options:
+        - label: I am the issuer of this token or have permission from the issuer to register
+          required: true
+        - label: The information provided is accurate and does not contain false information
+          required: true
