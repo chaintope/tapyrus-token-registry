@@ -10,10 +10,10 @@ This repository manages metadata for colored coins (tokens) issued on the Tapyru
 
 Based on network IDs defined in TIP-0044:
 
-| Network | Network ID | Description |
-|---------|-----------|-------------|
-| Tapyrus API | `15215628` | Production environment |
-| Tapyrus Testnet | `1939510133` | Test environment |
+| Network | Network ID |
+|---------|-----------|
+| Tapyrus API | `15215628` |
+| Tapyrus Testnet | `1939510133` |
 
 ## How to Register a Token
 
