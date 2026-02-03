@@ -152,6 +152,38 @@ for (const network of invalidNetworks) {
   test(`  ${display}`, parseNetwork(network) === null);
 }
 
+console.log('\n=== JSON Metadata Parsing Tests ===\n');
+
+function parseMetadataJson(jsonString) {
+  let cleaned = jsonString.trim();
+  if (cleaned.startsWith('```json')) {
+    cleaned = cleaned.slice(7);
+  } else if (cleaned.startsWith('```')) {
+    cleaned = cleaned.slice(3);
+  }
+  if (cleaned.endsWith('```')) {
+    cleaned = cleaned.slice(0, -3);
+  }
+  cleaned = cleaned.trim();
+  return JSON.parse(cleaned);
+}
+
+const validJsonInputs = [
+  '{"name": "Test", "symbol": "TST"}',
+  '```json\n{"name": "Test", "symbol": "TST"}\n```',
+  '```\n{"name": "Test", "symbol": "TST"}\n```',
+];
+
+console.log('Valid JSON inputs:');
+for (const input of validJsonInputs) {
+  try {
+    const result = parseMetadataJson(input);
+    test(`  Parse JSON (${input.substring(0, 20)}...)`, result.name === 'Test' && result.symbol === 'TST');
+  } catch (e) {
+    test(`  Parse JSON (${input.substring(0, 20)}...)`, false);
+  }
+}
+
 console.log('\n=== Issue Body Parsing Test ===\n');
 
 const sampleIssueBody = `### Network
@@ -162,65 +194,23 @@ Tapyrus API (prod) - Network ID: 15215628
 
 c1a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2
 
-### Token Name
+### Token Metadata (JSON)
 
-Test Token
-
-### Symbol
-
-TST
-
-### Decimals
-
-8
-
-### Description
-
-This is a test token
-
-### Icon URL
-
-https://example.com/icon.png
-
-### Website
-
-https://example.com
-
-### Terms of Service URL
-
-_No response_
-
-### Issuer Name
-
-Test Issuer
-
-### Issuer URL
-
-https://issuer.example.com
-
-### Issuer Email
-
-issuer@example.com
-
-### Image URL
-
-_No response_
-
-### Animation URL
-
-_No response_
-
-### External URL
-
-_No response_
-
-### Attributes (JSON format)
-
-_No response_
+\`\`\`json
+{
+  "name": "Test Token",
+  "symbol": "TST",
+  "decimals": 8,
+  "description": "This is a test token",
+  "icon": "https://example.com/icon.png",
+  "website": "https://example.com"
+}
+\`\`\`
 
 ### Confirmation
 
 - [X] I am the issuer of this token or have permission from the issuer to register
+- [X] The provided metadata matches what was used to derive the Color ID
 - [X] The information provided is accurate and does not contain false information`;
 
 function parseIssueBody(body) {
@@ -233,20 +223,7 @@ function parseIssueBody(body) {
   const fieldMapping = {
     'Network': 'network',
     'Color ID': 'color_id',
-    'Token Name': 'name',
-    'Symbol': 'symbol',
-    'Decimals': 'decimals',
-    'Description': 'description',
-    'Icon URL': 'icon',
-    'Website': 'website',
-    'Terms of Service URL': 'terms',
-    'Issuer Name': 'issuer_name',
-    'Issuer URL': 'issuer_url',
-    'Issuer Email': 'issuer_email',
-    'Image URL': 'image',
-    'Animation URL': 'animation_url',
-    'External URL': 'external_url',
-    'Attributes (JSON format)': 'attributes',
+    'Token Metadata (JSON)': 'metadata',
     'Confirmation': 'confirmation'
   };
 
@@ -288,16 +265,20 @@ const parsed = parseIssueBody(sampleIssueBody);
 
 test('Parsed network', parsed.network === 'Tapyrus API (prod) - Network ID: 15215628');
 test('Parsed color_id', parsed.color_id === 'c1a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2');
-test('Parsed name', parsed.name === 'Test Token');
-test('Parsed symbol', parsed.symbol === 'TST');
-test('Parsed decimals', parsed.decimals === '8');
-test('Parsed description', parsed.description === 'This is a test token');
-test('Parsed icon', parsed.icon === 'https://example.com/icon.png');
-test('Parsed website', parsed.website === 'https://example.com');
-test('No terms (was _No response_)', !parsed.terms);
-test('Parsed issuer_name', parsed.issuer_name === 'Test Issuer');
-test('Parsed issuer_url', parsed.issuer_url === 'https://issuer.example.com');
-test('Parsed issuer_email', parsed.issuer_email === 'issuer@example.com');
+test('Parsed metadata (exists)', !!parsed.metadata);
+
+// Parse and validate metadata JSON
+try {
+  const metadata = parseMetadataJson(parsed.metadata);
+  test('Metadata name', metadata.name === 'Test Token');
+  test('Metadata symbol', metadata.symbol === 'TST');
+  test('Metadata decimals', metadata.decimals === 8);
+  test('Metadata description', metadata.description === 'This is a test token');
+  test('Metadata icon', metadata.icon === 'https://example.com/icon.png');
+  test('Metadata website', metadata.website === 'https://example.com');
+} catch (e) {
+  test('Metadata JSON parsing', false);
+}
 
 console.log('\n=== Summary ===\n');
 console.log(`Passed: ${passed}`);

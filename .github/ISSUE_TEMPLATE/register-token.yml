@@ -9,6 +9,8 @@ body:
         ## Tapyrus Token Registry Registration Form
         Register token metadata compliant with TIP-0020 specification.
 
+        This registry is for tokens that have already been issued. The metadata JSON should match exactly what was used to derive the Color ID.
+
   - type: dropdown
     id: network
     attributes:
@@ -29,147 +31,23 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: name
-    attributes:
-      label: Token Name
-      description: "Name of the token (max 64 characters)"
-      placeholder: "Example Token"
-    validations:
-      required: true
-
-  - type: input
-    id: symbol
-    attributes:
-      label: Symbol
-      description: "Token symbol (max 12 characters)"
-      placeholder: "EXT"
-    validations:
-      required: true
-
-  - type: input
-    id: decimals
-    attributes:
-      label: Decimals
-      description: "Number of decimal places (0-18, default: 0)"
-      placeholder: "8"
-    validations:
-      required: false
-
   - type: textarea
-    id: description
+    id: metadata
     attributes:
-      label: Description
-      description: "Token description (max 256 characters)"
-      placeholder: "This token is..."
-    validations:
-      required: false
-
-  - type: input
-    id: icon
-    attributes:
-      label: Icon URL
-      description: "Token icon URL (HTTPS required)"
-      placeholder: "https://example.com/icon.png"
-    validations:
-      required: false
-
-  - type: input
-    id: website
-    attributes:
-      label: Website
-      description: "Project website URL (HTTPS required)"
-      placeholder: "https://example.com"
-    validations:
-      required: false
-
-  - type: input
-    id: terms
-    attributes:
-      label: Terms of Service URL
-      description: "Terms of service URL (HTTPS required)"
-      placeholder: "https://example.com/terms"
-    validations:
-      required: false
-
-  - type: markdown
-    attributes:
-      value: |
-        ---
-        ## Issuer Information
-
-  - type: input
-    id: issuer_name
-    attributes:
-      label: Issuer Name
-      description: "Name of the token issuer"
-      placeholder: "Example Corp"
-    validations:
-      required: false
-
-  - type: input
-    id: issuer_url
-    attributes:
-      label: Issuer URL
-      description: "Issuer's website URL (HTTPS required)"
-      placeholder: "https://example.com"
-    validations:
-      required: false
-
-  - type: input
-    id: issuer_email
-    attributes:
-      label: Issuer Email
-      description: "Issuer's contact email address"
-      placeholder: "contact@example.com"
-    validations:
-      required: false
-
-  - type: markdown
-    attributes:
-      value: |
-        ---
-        ## NFT Extension Fields (c3 tokens only)
-
-  - type: input
-    id: image
-    attributes:
-      label: Image URL
-      description: "NFT image URL (HTTPS required)"
-      placeholder: "https://example.com/nft.png"
-    validations:
-      required: false
-
-  - type: input
-    id: animation_url
-    attributes:
-      label: Animation URL
-      description: "NFT animation URL (HTTPS required)"
-      placeholder: "https://example.com/animation.mp4"
-    validations:
-      required: false
-
-  - type: input
-    id: external_url
-    attributes:
-      label: External URL
-      description: "NFT external link URL (HTTPS required)"
-      placeholder: "https://example.com/nft/1"
-    validations:
-      required: false
-
-  - type: textarea
-    id: attributes
-    attributes:
-      label: Attributes (JSON format)
-      description: "NFT attributes in JSON array format"
+      label: Token Metadata (JSON)
+      description: "TIP-0020 compliant token metadata in JSON format"
       placeholder: |
-        [
-          {"trait_type": "Color", "value": "Blue"},
-          {"trait_type": "Size", "value": "Large"}
-        ]
+        {
+          "name": "Example Token",
+          "symbol": "EXT",
+          "decimals": 8,
+          "description": "An example token",
+          "icon": "https://example.com/icon.png",
+          "website": "https://example.com"
+        }
+      render: json
     validations:
-      required: false
+      required: true
 
   - type: checkboxes
     id: confirmation
@@ -178,6 +56,8 @@ body:
       description: Please confirm the following
       options:
         - label: I am the issuer of this token or have permission from the issuer to register
+          required: true
+        - label: The provided metadata matches what was used to derive the Color ID
           required: true
         - label: The information provided is accurate and does not contain false information
           required: true

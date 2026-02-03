@@ -6,13 +6,6 @@ const path = require('path');
 // Color ID validation pattern: c[123] + 64 hex characters = 66 characters total
 const COLOR_ID_PATTERN = /^c[123][0-9a-f]{64}$/i;
 
-// Token type mapping
-const TOKEN_TYPES = {
-  c1: 'reissuable',
-  c2: 'non-reissuable',
-  c3: 'nft'
-};
-
 // Network definitions (TIP-0044)
 const NETWORKS = {
   'Tapyrus API (prod) - Network ID: 15215628': {
@@ -26,8 +19,6 @@ const NETWORKS = {
     label: 'testnet'
   }
 };
-
-const VALID_NETWORK_IDS = ['15215628', '1939510133'];
 
 // Validation limits
 const LIMITS = {
@@ -62,7 +53,7 @@ function parseIssueBody(body) {
       continue;
     }
 
-    // Skip checkbox lines and empty confirmation sections
+    // Skip checkbox lines
     if (line.startsWith('- [')) {
       continue;
     }
@@ -89,26 +80,13 @@ function parseIssueBody(body) {
 }
 
 /**
- * Map field names from Issue template to metadata keys
+ * Map field names from Issue template to keys
  */
 function mapFieldName(name) {
   const mapping = {
     'Network': 'network',
     'Color ID': 'color_id',
-    'Token Name': 'name',
-    'Symbol': 'symbol',
-    'Decimals': 'decimals',
-    'Description': 'description',
-    'Icon URL': 'icon',
-    'Website': 'website',
-    'Terms of Service URL': 'terms',
-    'Issuer Name': 'issuer_name',
-    'Issuer URL': 'issuer_url',
-    'Issuer Email': 'issuer_email',
-    'Image URL': 'image',
-    'Animation URL': 'animation_url',
-    'External URL': 'external_url',
-    'Attributes (JSON format)': 'attributes',
+    'Token Metadata (JSON)': 'metadata',
     'Confirmation': 'confirmation'
   };
   return mapping[name] || name.toLowerCase().replace(/\s+/g, '_');
@@ -160,7 +138,7 @@ function isValidEmail(email) {
 /**
  * Validate token metadata
  */
-function validateMetadata(data) {
+function validateMetadata(data, metadata) {
   const errors = [];
 
   // Required: network
@@ -180,55 +158,58 @@ function validateMetadata(data) {
     errors.push('Invalid Color ID format. Must be c1/c2/c3 prefix + 64 hex characters');
   }
 
-  // Required: name
-  if (!data.name) {
-    errors.push('Token name is required');
-  } else if (data.name.length > LIMITS.name) {
-    errors.push(`Token name must be ${LIMITS.name} characters or less`);
+  // Required: metadata
+  if (!data.metadata) {
+    errors.push('Token metadata is required');
   }
 
-  // Required: symbol
-  if (!data.symbol) {
-    errors.push('Symbol is required');
-  } else if (data.symbol.length > LIMITS.symbol) {
-    errors.push(`Symbol must be ${LIMITS.symbol} characters or less`);
-  }
-
-  // Optional: decimals
-  if (data.decimals !== undefined) {
-    const decimals = parseInt(data.decimals, 10);
-    if (isNaN(decimals) || decimals < 0 || decimals > 18) {
-      errors.push('Decimals must be an integer between 0 and 18');
+  // Validate metadata JSON structure
+  if (metadata) {
+    // Required fields
+    if (!metadata.name) {
+      errors.push('Metadata: "name" field is required');
+    } else if (metadata.name.length > LIMITS.name) {
+      errors.push(`Metadata: "name" must be ${LIMITS.name} characters or less`);
     }
-  }
 
-  // Optional: description
-  if (data.description && data.description.length > LIMITS.description) {
-    errors.push(`Description must be ${LIMITS.description} characters or less`);
-  }
-
-  // URL validations
-  const urlFields = ['icon', 'website', 'terms', 'issuer_url', 'image', 'animation_url', 'external_url'];
-  for (const field of urlFields) {
-    if (data[field] && !isValidHttpsUrl(data[field])) {
-      errors.push(`${field} must be a valid HTTPS URL`);
+    if (!metadata.symbol) {
+      errors.push('Metadata: "symbol" field is required');
+    } else if (metadata.symbol.length > LIMITS.symbol) {
+      errors.push(`Metadata: "symbol" must be ${LIMITS.symbol} characters or less`);
     }
-  }
 
-  // Email validation
-  if (data.issuer_email && !isValidEmail(data.issuer_email)) {
-    errors.push('Invalid issuer email format');
-  }
-
-  // Attributes validation (JSON format)
-  if (data.attributes) {
-    try {
-      const parsed = JSON.parse(data.attributes);
-      if (!Array.isArray(parsed)) {
-        errors.push('Attributes must be a JSON array');
+    // Optional field validations
+    if (metadata.decimals !== undefined) {
+      if (!Number.isInteger(metadata.decimals) || metadata.decimals < 0 || metadata.decimals > 18) {
+        errors.push('Metadata: "decimals" must be an integer between 0 and 18');
       }
-    } catch {
-      errors.push('Invalid JSON format for attributes');
+    }
+
+    if (metadata.description && metadata.description.length > LIMITS.description) {
+      errors.push(`Metadata: "description" must be ${LIMITS.description} characters or less`);
+    }
+
+    // URL validations
+    const urlFields = ['icon', 'website', 'terms', 'image', 'animation_url', 'external_url'];
+    for (const field of urlFields) {
+      if (metadata[field] && !isValidHttpsUrl(metadata[field])) {
+        errors.push(`Metadata: "${field}" must be a valid HTTPS URL`);
+      }
+    }
+
+    // Issuer URL validation
+    if (metadata.issuer && metadata.issuer.url && !isValidHttpsUrl(metadata.issuer.url)) {
+      errors.push('Metadata: "issuer.url" must be a valid HTTPS URL');
+    }
+
+    // Issuer email validation
+    if (metadata.issuer && metadata.issuer.email && !isValidEmail(metadata.issuer.email)) {
+      errors.push('Metadata: "issuer.email" must be a valid email address');
+    }
+
+    // Attributes validation (must be array)
+    if (metadata.attributes !== undefined && !Array.isArray(metadata.attributes)) {
+      errors.push('Metadata: "attributes" must be an array');
     }
   }
 
@@ -236,71 +217,22 @@ function validateMetadata(data) {
 }
 
 /**
- * Build metadata object following TIP-0020
+ * Parse metadata JSON from issue body
  */
-function buildMetadata(data) {
-  const colorIdPrefix = data.color_id.substring(0, 2).toLowerCase();
-  const tokenType = TOKEN_TYPES[colorIdPrefix];
-
-  const metadata = {
-    version: '1.0',
-    name: data.name,
-    symbol: data.symbol
-  };
-
-  // Add optional fields in specific order for consistency
-  if (data.decimals !== undefined) {
-    metadata.decimals = parseInt(data.decimals, 10);
-  } else {
-    metadata.decimals = 0;
+function parseMetadataJson(jsonString) {
+  // Remove markdown code block markers if present
+  let cleaned = jsonString.trim();
+  if (cleaned.startsWith('```json')) {
+    cleaned = cleaned.slice(7);
+  } else if (cleaned.startsWith('```')) {
+    cleaned = cleaned.slice(3);
   }
-
-  if (data.description) {
-    metadata.description = data.description;
+  if (cleaned.endsWith('```')) {
+    cleaned = cleaned.slice(0, -3);
   }
+  cleaned = cleaned.trim();
 
-  if (data.icon) {
-    metadata.icon = data.icon;
-  }
-
-  if (data.website) {
-    metadata.website = data.website;
-  }
-
-  if (data.terms) {
-    metadata.terms = data.terms;
-  }
-
-  // Issuer information
-  if (data.issuer_name || data.issuer_url || data.issuer_email) {
-    metadata.issuer = {};
-    if (data.issuer_name) metadata.issuer.name = data.issuer_name;
-    if (data.issuer_url) metadata.issuer.url = data.issuer_url;
-    if (data.issuer_email) metadata.issuer.email = data.issuer_email;
-  }
-
-  // Token type
-  metadata.token_type = tokenType;
-
-  // NFT extensions (only for c3 tokens)
-  if (colorIdPrefix === 'c3') {
-    if (data.image) metadata.image = data.image;
-    if (data.animation_url) metadata.animation_url = data.animation_url;
-    if (data.external_url) metadata.external_url = data.external_url;
-    if (data.attributes) {
-      metadata.attributes = JSON.parse(data.attributes);
-    }
-  }
-
-  return metadata;
-}
-
-/**
- * Serialize JSON following RFC 8785 (JCS - JSON Canonicalization Scheme)
- * Keys are sorted lexicographically
- */
-function canonicalJsonStringify(obj) {
-  return JSON.stringify(obj, Object.keys(obj).sort(), 2);
+  return JSON.parse(cleaned);
 }
 
 /**
@@ -318,8 +250,22 @@ async function main() {
   const data = parseIssueBody(issueBody);
   console.log('Parsed data:', JSON.stringify(data, null, 2));
 
+  // Parse metadata JSON
+  let metadata = null;
+  if (data.metadata) {
+    try {
+      metadata = parseMetadataJson(data.metadata);
+      console.log('Parsed metadata:', JSON.stringify(metadata, null, 2));
+    } catch (err) {
+      const errorMessage = `Invalid JSON format in metadata: ${err.message}`;
+      console.error(errorMessage);
+      fs.writeFileSync('validation-error.txt', errorMessage);
+      process.exit(1);
+    }
+  }
+
   console.log('Validating metadata...');
-  const errors = validateMetadata(data);
+  const errors = validateMetadata(data, metadata);
 
   if (errors.length > 0) {
     const errorMessage = errors.map(e => `- ${e}`).join('\n');
@@ -330,8 +276,6 @@ async function main() {
     process.exit(1);
   }
 
-  console.log('Building metadata...');
-  const metadata = buildMetadata(data);
   const colorId = data.color_id.toLowerCase();
   const networkInfo = parseNetwork(data.network);
   const networkId = networkInfo.id;
@@ -345,8 +289,8 @@ async function main() {
     process.exit(1);
   }
 
-  // Write metadata file
-  const jsonContent = canonicalJsonStringify(metadata);
+  // Write metadata file (preserve original JSON structure)
+  const jsonContent = JSON.stringify(metadata, null, 2);
   fs.writeFileSync(tokenPath, jsonContent + '\n');
   console.log(`Token metadata written to ${tokenPath}`);
 
