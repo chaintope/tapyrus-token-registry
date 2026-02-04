@@ -13,10 +13,10 @@ const PAYMENT_BASE_PATTERN = /^(02|03)[0-9a-f]{64}$/i;
 
 // Network definitions (TIP-0044)
 const NETWORKS = {
-  'Tapyrus API (prod) - Network ID: 15215628': {
+  'Tapyrus API - Network ID: 15215628': {
     id: '15215628',
     name: 'Tapyrus API',
-    label: 'prod'
+    label: 'api'
   },
   'Tapyrus Testnet - Network ID: 1939510133': {
     id: '1939510133',
@@ -244,7 +244,7 @@ function validateMetadata(data, metadata) {
   } else {
     const networkInfo = parseNetwork(data.network);
     if (!networkInfo) {
-      errors.push('Invalid network selected. Please select Tapyrus API (prod) or Tapyrus Testnet');
+      errors.push('Invalid network selected. Please select Tapyrus API or Tapyrus Testnet');
     }
   }
 

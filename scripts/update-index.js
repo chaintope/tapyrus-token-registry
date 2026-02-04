@@ -8,7 +8,7 @@ const INDEX_FILE = 'docs/index.html';
 
 // Network definitions (TIP-0044)
 const NETWORKS = [
-  { id: '15215628', name: 'Tapyrus API', label: 'prod' },
+  { id: '15215628', name: 'Tapyrus API', label: 'api' },
   { id: '1939510133', name: 'Tapyrus Testnet', label: 'testnet' }
 ];
 

@@ -150,7 +150,7 @@ for (const email of invalidEmails) {
 console.log('\n=== Network Validation Tests (TIP-0044) ===\n');
 
 const NETWORKS = {
-  'Tapyrus API (prod) - Network ID: 15215628': { id: '15215628', name: 'Tapyrus API' },
+  'Tapyrus API - Network ID: 15215628': { id: '15215628', name: 'Tapyrus API' },
   'Tapyrus Testnet - Network ID: 1939510133': { id: '1939510133', name: 'Tapyrus Testnet' }
 };
 
@@ -271,7 +271,7 @@ console.log('\n=== Issue Body Parsing Test ===\n');
 
 const sampleIssueBody = `### Network
 
-Tapyrus API (prod) - Network ID: 15215628
+Tapyrus API - Network ID: 15215628
 
 ### Color ID
 
@@ -348,7 +348,7 @@ function parseIssueBody(body) {
 
 const parsed = parseIssueBody(sampleIssueBody);
 
-test('Parsed network', parsed.network === 'Tapyrus API (prod) - Network ID: 15215628');
+test('Parsed network', parsed.network === 'Tapyrus API - Network ID: 15215628');
 test('Parsed color_id', parsed.color_id === 'c1a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2');
 test('Parsed payment_base', parsed.payment_base === '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798');
 test('Parsed metadata (exists)', !!parsed.metadata);
