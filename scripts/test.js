@@ -4,8 +4,7 @@
  * Test script for token registration validation
  */
 
-const crypto = require('crypto');
-const secp256k1 = require('@noble/secp256k1');
+const { Metadata } = require('tapyrusjs-lib');
 
 const COLOR_ID_PATTERN = /^c[123][0-9a-f]{64}$/i;
 const PAYMENT_BASE_PATTERN = /^(02|03)[0-9a-f]{64}$/i;
@@ -178,61 +177,61 @@ for (const network of invalidNetworks) {
   test(`  ${display}`, parseNetwork(network) === null);
 }
 
-console.log('\n=== P2C and Color ID Derivation Tests ===\n');
+console.log('\n=== tapyrusjs-lib Metadata Class Tests ===\n');
 
-function sha256(data) {
-  return crypto.createHash('sha256').update(data).digest();
-}
-
-function doubleSha256(data) {
-  return sha256(sha256(data));
-}
-
-function hash160(data) {
-  const sha = sha256(data);
-  return crypto.createHash('ripemd160').update(sha).digest();
-}
-
-function computeP2CPubkey(paymentBase, commitment) {
-  const paymentBaseBytes = Buffer.from(paymentBase, 'hex');
-  const tweakData = Buffer.concat([paymentBaseBytes, commitment]);
-  const tweak = sha256(tweakData);
-  const paymentBasePoint = secp256k1.ProjectivePoint.fromHex(paymentBaseBytes);
-  const tweakPoint = secp256k1.ProjectivePoint.BASE.multiply(BigInt('0x' + tweak.toString('hex')));
-  const p2cPoint = paymentBasePoint.add(tweakPoint);
-  return Buffer.from(p2cPoint.toRawBytes(true));
-}
-
-function deriveColorId(p2cPubkey, tokenType) {
-  const pubkeyHash = hash160(p2cPubkey);
-  const script = Buffer.concat([
-    Buffer.from([0x76, 0xa9, 0x14]),
-    pubkeyHash,
-    Buffer.from([0x88, 0xac])
-  ]);
-  const scriptHash = doubleSha256(script);
-  return tokenType + scriptHash.toString('hex');
-}
-
-// Test with a known payment base
-const testPaymentBase = '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'; // Generator point G
-const testMetadata = { name: 'Test', symbol: 'TST' };
-const testMetadataHash = sha256(Buffer.from(JSON.stringify(testMetadata), 'utf8'));
+// Test with a known payment base (secp256k1 generator point G)
+const testPaymentBase = '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798';
+const testMetadataFields = {
+  version: '1.0',
+  name: 'Test',
+  symbol: 'TST',
+  tokenType: 'reissuable'
+};
 
 try {
-  const p2cPubkey = computeP2CPubkey(testPaymentBase, testMetadataHash);
-  test('P2C pubkey computation', p2cPubkey.length === 33);
+  const metadata = new Metadata(testMetadataFields);
+  test('Metadata class instantiation', true);
 
-  const colorId = deriveColorId(p2cPubkey, 'c1');
-  test('Color ID derivation (format)', COLOR_ID_PATTERN.test(colorId));
-  test('Color ID derivation (prefix)', colorId.startsWith('c1'));
+  const digest = metadata.digest();
+  test('Metadata digest computation', digest.length === 32);
 
-  console.log(`  Test metadata hash: ${testMetadataHash.toString('hex')}`);
-  console.log(`  Test P2C pubkey: ${p2cPubkey.toString('hex')}`);
-  console.log(`  Test Color ID: ${colorId}`);
+  const canonical = metadata.toCanonical();
+  test('Metadata canonical form', typeof canonical === 'string' && canonical.includes('"name":"Test"'));
+
+  const paymentBaseBuffer = Buffer.from(testPaymentBase, 'hex');
+  const colorId = metadata.deriveColorId(paymentBaseBuffer);
+  test('Color ID derivation', colorId.length === 33);
+  test('Color ID prefix (c1)', colorId[0] === 0xc1);
+
+  const colorIdHex = colorId.toString('hex');
+  test('Color ID format', COLOR_ID_PATTERN.test(colorIdHex));
+
+  console.log(`  Test metadata digest: ${digest.toString('hex')}`);
+  console.log(`  Test canonical form: ${canonical}`);
+  console.log(`  Test Color ID: ${colorIdHex}`);
 } catch (e) {
-  test('P2C computation', false);
+  test('Metadata class tests', false);
   console.error('  Error:', e.message);
+}
+
+console.log('\n=== Metadata Validation Tests ===\n');
+
+// Test invalid metadata
+const invalidMetadataTests = [
+  { fields: { version: '2.0', name: 'Test', symbol: 'TST', tokenType: 'reissuable' }, error: 'version' },
+  { fields: { version: '1.0', name: '', symbol: 'TST', tokenType: 'reissuable' }, error: 'name required' },
+  { fields: { version: '1.0', name: 'Test', symbol: '', tokenType: 'reissuable' }, error: 'symbol required' },
+  { fields: { version: '1.0', name: 'A'.repeat(65), symbol: 'TST', tokenType: 'reissuable' }, error: 'name too long' },
+  { fields: { version: '1.0', name: 'Test', symbol: 'TOOLONGSYMBOL', tokenType: 'reissuable' }, error: 'symbol too long' },
+];
+
+for (const testCase of invalidMetadataTests) {
+  try {
+    new Metadata(testCase.fields);
+    test(`  Invalid metadata (${testCase.error}) rejected`, false);
+  } catch (e) {
+    test(`  Invalid metadata (${testCase.error}) rejected`, true);
+  }
 }
 
 console.log('\n=== JSON Metadata Parsing Tests ===\n');
@@ -355,10 +354,10 @@ test('Parsed metadata (exists)', !!parsed.metadata);
 
 // Parse and validate metadata JSON
 try {
-  const metadata = parseMetadataJson(parsed.metadata);
-  test('Metadata name', metadata.name === 'Test Token');
-  test('Metadata symbol', metadata.symbol === 'TST');
-  test('Metadata decimals', metadata.decimals === 8);
+  const metadataFields = parseMetadataJson(parsed.metadata);
+  test('Metadata name', metadataFields.name === 'Test Token');
+  test('Metadata symbol', metadataFields.symbol === 'TST');
+  test('Metadata decimals', metadataFields.decimals === 8);
 } catch (e) {
   test('Metadata JSON parsing', false);
 }

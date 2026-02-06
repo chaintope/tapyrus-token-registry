@@ -26,6 +26,6 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@noble/secp256k1": "^2.1.0"
+    "tapyrusjs-lib": "github:chaintope/tapyrusjs-lib#master"
   }
 }

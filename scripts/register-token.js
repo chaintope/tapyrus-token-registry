@@ -2,8 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
-const secp256k1 = require('@noble/secp256k1');
+const { Metadata } = require('tapyrusjs-lib');
 
 // Color ID validation pattern: c[123] + 64 hex characters = 66 characters total
 const COLOR_ID_PATTERN = /^c[123][0-9a-f]{64}$/i;
@@ -25,103 +24,12 @@ const NETWORKS = {
   }
 };
 
-// Validation limits
-const LIMITS = {
-  name: 64,
-  symbol: 12,
-  description: 256
+// Map Color ID prefix to token type
+const COLOR_ID_PREFIX_TO_TYPE = {
+  'c1': 'reissuable',
+  'c2': 'non_reissuable',
+  'c3': 'nft'
 };
-
-/**
- * SHA256 hash
- */
-function sha256(data) {
-  return crypto.createHash('sha256').update(data).digest();
-}
-
-/**
- * Double SHA256 hash
- */
-function doubleSha256(data) {
-  return sha256(sha256(data));
-}
-
-/**
- * HASH160 (SHA256 + RIPEMD160)
- */
-function hash160(data) {
-  const sha = sha256(data);
-  return crypto.createHash('ripemd160').update(sha).digest();
-}
-
-/**
- * Compute P2C (Pay-to-Contract) public key
- * P' = P + SHA256(P || c) * G
- */
-function computeP2CPubkey(paymentBase, commitment) {
-  const paymentBaseBytes = Buffer.from(paymentBase, 'hex');
-
-  // Compute tweak = SHA256(P || c)
-  const tweakData = Buffer.concat([paymentBaseBytes, commitment]);
-  const tweak = sha256(tweakData);
-
-  // P' = P + tweak * G
-  const paymentBasePoint = secp256k1.ProjectivePoint.fromHex(paymentBaseBytes);
-  const tweakPoint = secp256k1.ProjectivePoint.BASE.multiply(BigInt('0x' + tweak.toString('hex')));
-  const p2cPoint = paymentBasePoint.add(tweakPoint);
-
-  // Return compressed public key
-  return Buffer.from(p2cPoint.toRawBytes(true));
-}
-
-/**
- * Derive Color ID from P2C public key
- * For c1 (Reissuable): Color ID = SHA256(SHA256(script))
- * Script: OP_DUP OP_HASH160 <pubkeyhash> OP_EQUALVERIFY OP_CHECKSIG
- */
-function deriveColorId(p2cPubkey, tokenType) {
-  // Get pubkey hash (HASH160)
-  const pubkeyHash = hash160(p2cPubkey);
-
-  // Build P2PKH script: OP_DUP OP_HASH160 <20 bytes> OP_EQUALVERIFY OP_CHECKSIG
-  // 76 a9 14 <20 bytes> 88 ac
-  const script = Buffer.concat([
-    Buffer.from([0x76, 0xa9, 0x14]), // OP_DUP OP_HASH160 PUSH20
-    pubkeyHash,
-    Buffer.from([0x88, 0xac]) // OP_EQUALVERIFY OP_CHECKSIG
-  ]);
-
-  // Color ID = prefix + double SHA256 of script
-  const scriptHash = doubleSha256(script);
-
-  return tokenType + scriptHash.toString('hex');
-}
-
-/**
- * Verify that the metadata and payment base derive the expected Color ID
- */
-function verifyColorId(metadata, paymentBase, expectedColorId) {
-  // Get token type prefix
-  const tokenType = expectedColorId.substring(0, 2).toLowerCase();
-
-  // Compute metadata hash (SHA256 of canonical JSON)
-  const metadataJson = JSON.stringify(metadata);
-  const metadataHash = sha256(Buffer.from(metadataJson, 'utf8'));
-
-  // Compute P2C public key
-  const p2cPubkey = computeP2CPubkey(paymentBase, metadataHash);
-
-  // Derive Color ID
-  const derivedColorId = deriveColorId(p2cPubkey, tokenType);
-
-  return {
-    match: derivedColorId.toLowerCase() === expectedColorId.toLowerCase(),
-    derived: derivedColorId,
-    expected: expectedColorId.toLowerCase(),
-    metadataHash: metadataHash.toString('hex'),
-    p2cPubkey: p2cPubkey.toString('hex')
-  };
-}
 
 /**
  * Parse GitHub Issue form body
@@ -213,29 +121,9 @@ function parseNetwork(networkLabel) {
 }
 
 /**
- * Validate URL format (HTTPS required)
+ * Validate basic input fields (before Metadata class validation)
  */
-function isValidHttpsUrl(url) {
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Validate email format
- */
-function isValidEmail(email) {
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailPattern.test(email);
-}
-
-/**
- * Validate token metadata
- */
-function validateMetadata(data, metadata) {
+function validateInputFields(data) {
   const errors = [];
 
   // Required: network
@@ -267,56 +155,6 @@ function validateMetadata(data, metadata) {
     errors.push('Token metadata is required');
   }
 
-  // Validate metadata JSON structure
-  if (metadata) {
-    // Required fields
-    if (!metadata.name) {
-      errors.push('Metadata: "name" field is required');
-    } else if (metadata.name.length > LIMITS.name) {
-      errors.push(`Metadata: "name" must be ${LIMITS.name} characters or less`);
-    }
-
-    if (!metadata.symbol) {
-      errors.push('Metadata: "symbol" field is required');
-    } else if (metadata.symbol.length > LIMITS.symbol) {
-      errors.push(`Metadata: "symbol" must be ${LIMITS.symbol} characters or less`);
-    }
-
-    // Optional field validations
-    if (metadata.decimals !== undefined) {
-      if (!Number.isInteger(metadata.decimals) || metadata.decimals < 0 || metadata.decimals > 18) {
-        errors.push('Metadata: "decimals" must be an integer between 0 and 18');
-      }
-    }
-
-    if (metadata.description && metadata.description.length > LIMITS.description) {
-      errors.push(`Metadata: "description" must be ${LIMITS.description} characters or less`);
-    }
-
-    // URL validations
-    const urlFields = ['icon', 'website', 'terms', 'image', 'animation_url', 'external_url'];
-    for (const field of urlFields) {
-      if (metadata[field] && !isValidHttpsUrl(metadata[field])) {
-        errors.push(`Metadata: "${field}" must be a valid HTTPS URL`);
-      }
-    }
-
-    // Issuer URL validation
-    if (metadata.issuer && metadata.issuer.url && !isValidHttpsUrl(metadata.issuer.url)) {
-      errors.push('Metadata: "issuer.url" must be a valid HTTPS URL');
-    }
-
-    // Issuer email validation
-    if (metadata.issuer && metadata.issuer.email && !isValidEmail(metadata.issuer.email)) {
-      errors.push('Metadata: "issuer.email" must be a valid email address');
-    }
-
-    // Attributes validation (must be array)
-    if (metadata.attributes !== undefined && !Array.isArray(metadata.attributes)) {
-      errors.push('Metadata: "attributes" must be an array');
-    }
-  }
-
   return errors;
 }
 
@@ -340,6 +178,36 @@ function parseMetadataJson(jsonString) {
 }
 
 /**
+ * Verify Color ID using tapyrusjs-lib Metadata class
+ */
+function verifyColorId(metadataFields, paymentBase, expectedColorId) {
+  const tokenType = COLOR_ID_PREFIX_TO_TYPE[expectedColorId.substring(0, 2).toLowerCase()];
+
+  // Add version and tokenType for Metadata class
+  const fieldsWithType = {
+    version: '1.0',
+    tokenType: tokenType,
+    ...metadataFields
+  };
+
+  // Create Metadata instance (this also validates the metadata)
+  const metadata = new Metadata(fieldsWithType);
+
+  // Derive Color ID using Payment Base
+  const paymentBaseBuffer = Buffer.from(paymentBase, 'hex');
+  const derivedColorIdBuffer = metadata.deriveColorId(paymentBaseBuffer);
+  const derivedColorId = derivedColorIdBuffer.toString('hex');
+
+  return {
+    match: derivedColorId.toLowerCase() === expectedColorId.toLowerCase(),
+    derived: derivedColorId,
+    expected: expectedColorId.toLowerCase(),
+    metadataDigest: metadata.digest().toString('hex'),
+    canonical: metadata.toCanonical()
+  };
+}
+
+/**
  * Main execution
  */
 async function main() {
@@ -355,11 +223,11 @@ async function main() {
   console.log('Parsed data:', JSON.stringify(data, null, 2));
 
   // Parse metadata JSON
-  let metadata = null;
+  let metadataFields = null;
   if (data.metadata) {
     try {
-      metadata = parseMetadataJson(data.metadata);
-      console.log('Parsed metadata:', JSON.stringify(metadata, null, 2));
+      metadataFields = parseMetadataJson(data.metadata);
+      console.log('Parsed metadata:', JSON.stringify(metadataFields, null, 2));
     } catch (err) {
       const errorMessage = `Invalid JSON format in metadata: ${err.message}`;
       console.error(errorMessage);
@@ -368,44 +236,56 @@ async function main() {
     }
   }
 
-  console.log('Validating metadata...');
-  const errors = validateMetadata(data, metadata);
+  console.log('Validating input fields...');
+  const inputErrors = validateInputFields(data);
 
-  if (errors.length > 0) {
-    const errorMessage = errors.map(e => `- ${e}`).join('\n');
+  if (inputErrors.length > 0) {
+    const errorMessage = inputErrors.map(e => `- ${e}`).join('\n');
     console.error('Validation errors:\n' + errorMessage);
-
-    // Write error to file for GitHub Actions
     fs.writeFileSync('validation-error.txt', errorMessage);
     process.exit(1);
   }
 
-  // Verify Color ID derivation
-  console.log('Verifying Color ID...');
-  const verification = verifyColorId(metadata, data.payment_base, data.color_id);
+  // Verify Color ID using tapyrusjs-lib Metadata class
+  console.log('Verifying Color ID with tapyrusjs-lib...');
+  let verification;
+  try {
+    verification = verifyColorId(metadataFields, data.payment_base, data.color_id);
+  } catch (err) {
+    const errorMessage = `Metadata validation error: ${err.message}`;
+    console.error(errorMessage);
+    fs.writeFileSync('validation-error.txt', errorMessage);
+    process.exit(1);
+  }
 
   if (!verification.match) {
     const errorMessage = `Color ID verification failed.\n` +
       `- Expected: ${verification.expected}\n` +
       `- Derived:  ${verification.derived}\n` +
-      `- Metadata hash: ${verification.metadataHash}\n` +
-      `- P2C pubkey: ${verification.p2cPubkey}\n\n` +
-      `Please ensure the metadata JSON exactly matches what was used to derive the Color ID.`;
+      `- Metadata digest: ${verification.metadataDigest}\n\n` +
+      `Please ensure the metadata JSON exactly matches what was used to derive the Color ID.\n\n` +
+      `Canonical form used for derivation:\n${verification.canonical}`;
     console.error(errorMessage);
     fs.writeFileSync('validation-error.txt', errorMessage);
     process.exit(1);
   }
 
   console.log('Color ID verified successfully');
-  console.log(`  Metadata hash: ${verification.metadataHash}`);
-  console.log(`  P2C pubkey: ${verification.p2cPubkey}`);
+  console.log(`  Metadata digest: ${verification.metadataDigest}`);
 
   const colorId = data.color_id.toLowerCase();
   const networkInfo = parseNetwork(data.network);
   const networkId = networkInfo.id;
 
   // Check for existing token in network-specific directory
-  const tokenPath = path.join('docs', 'tokens', networkId, `${colorId}.json`);
+  const tokenDir = path.join('docs', 'tokens', networkId);
+  const tokenPath = path.join(tokenDir, `${colorId}.json`);
+
+  // Ensure directory exists
+  if (!fs.existsSync(tokenDir)) {
+    fs.mkdirSync(tokenDir, { recursive: true });
+  }
+
   if (fs.existsSync(tokenPath)) {
     const errorMessage = `Color ID ${colorId} is already registered on ${networkInfo.name} (Network ID: ${networkId})`;
     console.error(errorMessage);
@@ -413,8 +293,8 @@ async function main() {
     process.exit(1);
   }
 
-  // Write metadata file (preserve original JSON structure)
-  const jsonContent = JSON.stringify(metadata, null, 2);
+  // Write metadata file (preserve original JSON exactly as input)
+  const jsonContent = JSON.stringify(metadataFields, null, 2);
   fs.writeFileSync(tokenPath, jsonContent + '\n');
   console.log(`Token metadata written to ${tokenPath}`);
 
