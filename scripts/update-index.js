@@ -55,29 +55,33 @@ function readTokens() {
  */
 function generateTokenRows(tokens, networkId) {
   if (tokens.length === 0) {
-    return `<tr><td colspan="6" class="empty-message">No tokens registered</td></tr>`;
+    return `<tr><td colspan="5" class="empty-message">No tokens registered</td></tr>`;
   }
 
   return tokens.map(token => {
+    // Derive token type from Color ID prefix
+    const colorIdPrefix = token.color_id.substring(0, 2).toLowerCase();
+    const tokenType = {
+      'c1': 'reissuable',
+      'c2': 'non-reissuable',
+      'c3': 'nft'
+    }[colorIdPrefix] || 'unknown';
+
     const typeLabel = {
       'reissuable': 'Reissuable',
       'non-reissuable': 'Non-Reissuable',
       'nft': 'NFT'
-    }[token.token_type] || token.token_type;
+    }[tokenType] || tokenType;
 
     const typeClass = {
       'reissuable': 'type-reissuable',
       'non-reissuable': 'type-non-reissuable',
       'nft': 'type-nft'
-    }[token.token_type] || '';
+    }[tokenType] || '';
 
     const icon = token.icon
       ? `<img src="${escapeHtml(token.icon)}" alt="${escapeHtml(token.name)}" class="token-icon" onerror="this.style.display='none'">`
       : '<div class="token-icon-placeholder"></div>';
-
-    const website = token.website
-      ? `<a href="${escapeHtml(token.website)}" target="_blank" rel="noopener">Website</a>`
-      : '';
 
     return `
       <tr>
@@ -85,13 +89,11 @@ function generateTokenRows(tokens, networkId) {
           ${icon}
           <div class="token-details">
             <strong>${escapeHtml(token.name)}</strong>
-            <span class="token-symbol">${escapeHtml(token.symbol)}</span>
           </div>
         </td>
+        <td>${escapeHtml(token.symbol)}</td>
         <td><code class="color-id">${escapeHtml(token.color_id)}</code></td>
         <td><span class="token-type ${typeClass}">${typeLabel}</span></td>
-        <td>${token.decimals !== undefined ? token.decimals : 0}</td>
-        <td>${website}</td>
         <td>
           <a href="tokens/${networkId}/${escapeHtml(token.color_id)}.json" target="_blank">JSON</a>
         </td>
@@ -416,10 +418,9 @@ function generateHtml(tokensByNetwork) {
         <thead>
           <tr>
             <th>Token</th>
+            <th>Symbol</th>
             <th>Color ID</th>
             <th>Type</th>
-            <th>Decimals</th>
-            <th>Website</th>
             <th>Metadata</th>
           </tr>
         </thead>
@@ -443,10 +444,9 @@ function generateHtml(tokensByNetwork) {
         <thead>
           <tr>
             <th>Token</th>
+            <th>Symbol</th>
             <th>Color ID</th>
             <th>Type</th>
-            <th>Decimals</th>
-            <th>Website</th>
             <th>Metadata</th>
           </tr>
         </thead>
