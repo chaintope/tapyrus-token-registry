@@ -8,8 +8,8 @@ const INDEX_FILE = 'docs/index.html';
 
 // Network definitions (TIP-0044)
 const NETWORKS = [
-  { id: '15215628', name: 'Tapyrus API', label: 'api' },
-  { id: '1939510133', name: 'Tapyrus Testnet', label: 'testnet' }
+  { id: '15215628', name: 'Tapyrus API', label: 'api', explorer: 'https://explorer.api.tapyrus.chaintope.com' },
+  { id: '1939510133', name: 'Tapyrus Testnet', label: 'testnet', explorer: 'https://testnet-explorer.tapyrus.dev.chaintope.com' }
 ];
 
 /**
@@ -58,6 +58,10 @@ function generateTokenRows(tokens, networkId) {
     return `<tr><td colspan="5" class="empty-message">No tokens registered</td></tr>`;
   }
 
+  // Get explorer URL for this network
+  const network = NETWORKS.find(n => n.id === networkId);
+  const explorerUrl = network ? network.explorer : '';
+
   return tokens.map(token => {
     // Derive token type from Color ID prefix
     const colorIdPrefix = token.color_id.substring(0, 2).toLowerCase();
@@ -83,6 +87,10 @@ function generateTokenRows(tokens, networkId) {
       ? `<img src="${escapeHtml(token.icon)}" alt="${escapeHtml(token.name)}" class="token-icon" onerror="this.style.display='none'">`
       : '<div class="token-icon-placeholder"></div>';
 
+    const colorIdLink = explorerUrl
+      ? `<a href="${explorerUrl}/color/${escapeHtml(token.color_id)}" target="_blank" rel="noopener"><code class="color-id">${escapeHtml(token.color_id)}</code></a>`
+      : `<code class="color-id">${escapeHtml(token.color_id)}</code>`;
+
     return `
       <tr>
         <td class="token-info">
@@ -92,7 +100,7 @@ function generateTokenRows(tokens, networkId) {
           </div>
         </td>
         <td>${escapeHtml(token.symbol)}</td>
-        <td><code class="color-id">${escapeHtml(token.color_id)}</code></td>
+        <td>${colorIdLink}</td>
         <td><span class="token-type ${typeClass}">${typeLabel}</span></td>
         <td>
           <a href="tokens/${networkId}/${escapeHtml(token.color_id)}.json" target="_blank">JSON</a>
