@@ -2,7 +2,7 @@ name: Register Token
 
 on:
   issues:
-    types: [opened, edited, labeled]
+    types: [opened, edited]
 
 jobs:
   register:

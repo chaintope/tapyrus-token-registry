@@ -35,10 +35,28 @@ body:
     id: payment_base
     attributes:
       label: Payment Base
-      description: "Payment Base public key used to derive the Color ID (33 bytes compressed, hex)"
+      description: "Payment Base public key used to derive the P2C address (33 bytes compressed, hex)"
       placeholder: "02a1b2c3d4e5f6..."
     validations:
       required: true
+
+  - type: input
+    id: outpoint_txid
+    attributes:
+      label: OutPoint Txid (for Non-Reissuable/NFT only)
+      description: "Transaction ID of the token issuance output (64 hex characters). Required for Non-Reissuable and NFT tokens."
+      placeholder: "a1b2c3d4e5f6..."
+    validations:
+      required: false
+
+  - type: input
+    id: outpoint_index
+    attributes:
+      label: OutPoint Index (for Non-Reissuable/NFT only)
+      description: "Output index of the token issuance output. Required for Non-Reissuable and NFT tokens."
+      placeholder: "0"
+    validations:
+      required: false
 
   - type: textarea
     id: metadata

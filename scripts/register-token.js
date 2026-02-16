@@ -2,7 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const { Metadata } = require('tapyrusjs-lib');
+const https = require('https');
+const { Metadata, crypto: tCrypto, payments } = require('tapyrusjs-lib');
 
 // Color ID validation pattern: c[123] + 64 hex characters = 66 characters total
 const COLOR_ID_PATTERN = /^c[123][0-9a-f]{64}$/i;
@@ -10,17 +11,22 @@ const COLOR_ID_PATTERN = /^c[123][0-9a-f]{64}$/i;
 // Payment Base validation pattern: 33 bytes compressed public key (66 hex chars)
 const PAYMENT_BASE_PATTERN = /^(02|03)[0-9a-f]{64}$/i;
 
+// Txid validation pattern: 64 hex characters
+const TXID_PATTERN = /^[0-9a-f]{64}$/i;
+
 // Network definitions (TIP-0044)
 const NETWORKS = {
   'Tapyrus API - Network ID: 15215628': {
     id: '15215628',
     name: 'Tapyrus API',
-    label: 'api'
+    label: 'api',
+    explorerApi: 'https://explorer.api.tapyrus.chaintope.com/api'
   },
   'Tapyrus Testnet - Network ID: 1939510133': {
     id: '1939510133',
     name: 'Tapyrus Testnet',
-    label: 'testnet'
+    label: 'testnet',
+    explorerApi: 'https://testnet-explorer.tapyrus.dev.chaintope.com/api'
   }
 };
 
@@ -30,6 +36,25 @@ const COLOR_ID_PREFIX_TO_TYPE = {
   'c2': 'non_reissuable',
   'c3': 'nft'
 };
+
+/**
+ * Fetch JSON from URL
+ */
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(new Error(`Failed to parse JSON from ${url}: ${e.message}`));
+        }
+      });
+    }).on('error', reject);
+  });
+}
 
 /**
  * Parse GitHub Issue form body
@@ -91,6 +116,8 @@ function mapFieldName(name) {
     'Network': 'network',
     'Color ID': 'color_id',
     'Payment Base': 'payment_base',
+    'OutPoint Txid (for Non-Reissuable/NFT only)': 'outpoint_txid',
+    'OutPoint Index (for Non-Reissuable/NFT only)': 'outpoint_index',
     'Token Metadata (JSON)': 'metadata',
     'Confirmation': 'confirmation'
   };
@@ -155,6 +182,27 @@ function validateInputFields(data) {
     errors.push('Token metadata is required');
   }
 
+  // For c2/c3 tokens, OutPoint is required
+  if (data.color_id) {
+    const prefix = data.color_id.substring(0, 2).toLowerCase();
+    if (prefix === 'c2' || prefix === 'c3') {
+      if (!data.outpoint_txid) {
+        errors.push('OutPoint Txid is required for Non-Reissuable and NFT tokens');
+      } else if (!TXID_PATTERN.test(data.outpoint_txid)) {
+        errors.push('Invalid OutPoint Txid format. Must be 64 hex characters');
+      }
+
+      if (data.outpoint_index === undefined || data.outpoint_index === '') {
+        errors.push('OutPoint Index is required for Non-Reissuable and NFT tokens');
+      } else {
+        const index = parseInt(data.outpoint_index, 10);
+        if (isNaN(index) || index < 0) {
+          errors.push('OutPoint Index must be a non-negative integer');
+        }
+      }
+    }
+  }
+
   return errors;
 }
 
@@ -178,22 +226,17 @@ function parseMetadataJson(jsonString) {
 }
 
 /**
- * Verify Color ID using tapyrusjs-lib Metadata class
+ * Derive P2PKH scriptPubkey from P2C public key
  */
-function verifyColorId(metadataFields, paymentBase, expectedColorId) {
-  const tokenType = COLOR_ID_PREFIX_TO_TYPE[expectedColorId.substring(0, 2).toLowerCase()];
+function deriveP2PKHScriptPubkey(p2cPubkey) {
+  const { output } = payments.p2pkh({ pubkey: p2cPubkey });
+  return output;
+}
 
-  // Add version and tokenType for Metadata class
-  const fieldsWithType = {
-    version: '1.0',
-    tokenType: tokenType,
-    ...metadataFields
-  };
-
-  // Create Metadata instance (this also validates the metadata)
-  const metadata = new Metadata(fieldsWithType);
-
-  // Derive Color ID using Payment Base
+/**
+ * Verify Color ID for Reissuable (c1) tokens
+ */
+function verifyReissuableColorId(metadata, paymentBase, expectedColorId) {
   const paymentBaseBuffer = Buffer.from(paymentBase, 'hex');
   const derivedColorIdBuffer = metadata.deriveColorId(paymentBaseBuffer);
   const derivedColorId = derivedColorIdBuffer.toString('hex');
@@ -201,9 +244,71 @@ function verifyColorId(metadataFields, paymentBase, expectedColorId) {
   return {
     match: derivedColorId.toLowerCase() === expectedColorId.toLowerCase(),
     derived: derivedColorId,
-    expected: expectedColorId.toLowerCase(),
-    metadataDigest: metadata.digest().toString('hex'),
-    canonical: metadata.toCanonical()
+    expected: expectedColorId.toLowerCase()
+  };
+}
+
+/**
+ * Verify Color ID for Non-Reissuable (c2) and NFT (c3) tokens
+ */
+function verifyOutPointColorId(metadata, outPointTxid, outPointIndex, expectedColorId) {
+  // Reverse txid for internal byte order (little-endian)
+  const txidBuffer = Buffer.from(outPointTxid, 'hex').reverse();
+  const outPoint = {
+    txid: txidBuffer,
+    index: outPointIndex
+  };
+
+  const derivedColorIdBuffer = metadata.deriveColorId(undefined, outPoint);
+  const derivedColorId = derivedColorIdBuffer.toString('hex');
+
+  return {
+    match: derivedColorId.toLowerCase() === expectedColorId.toLowerCase(),
+    derived: derivedColorId,
+    expected: expectedColorId.toLowerCase()
+  };
+}
+
+/**
+ * Fetch transaction output scriptPubkey from explorer
+ */
+async function fetchOutPointScriptPubkey(explorerApi, txid, index) {
+  const url = `${explorerApi}/tx/${txid}`;
+  console.log(`Fetching transaction from: ${url}`);
+
+  const txData = await fetchJson(url);
+
+  if (!txData || !txData.vout || !txData.vout[index]) {
+    throw new Error(`Output index ${index} not found in transaction ${txid}`);
+  }
+
+  const output = txData.vout[index];
+  if (!output.scriptPubKey || !output.scriptPubKey.hex) {
+    throw new Error(`scriptPubKey not found for output ${index} in transaction ${txid}`);
+  }
+
+  return Buffer.from(output.scriptPubKey.hex, 'hex');
+}
+
+/**
+ * Verify OutPoint scriptPubkey matches P2C derived scriptPubkey
+ */
+async function verifyOutPointScriptPubkey(metadata, paymentBase, explorerApi, txid, index) {
+  // Derive P2C public key from Payment Base + Metadata
+  const paymentBaseBuffer = Buffer.from(paymentBase, 'hex');
+  const p2cPubkey = metadata.p2cPublicKey(paymentBaseBuffer);
+
+  // Derive expected P2PKH scriptPubkey
+  const expectedScriptPubkey = deriveP2PKHScriptPubkey(p2cPubkey);
+
+  // Fetch actual scriptPubkey from explorer
+  const actualScriptPubkey = await fetchOutPointScriptPubkey(explorerApi, txid, index);
+
+  return {
+    match: expectedScriptPubkey.equals(actualScriptPubkey),
+    expected: expectedScriptPubkey.toString('hex'),
+    actual: actualScriptPubkey.toString('hex'),
+    p2cPubkey: p2cPubkey.toString('hex')
   };
 }
 
@@ -246,11 +351,22 @@ async function main() {
     process.exit(1);
   }
 
-  // Verify Color ID using tapyrusjs-lib Metadata class
-  console.log('Verifying Color ID with tapyrusjs-lib...');
-  let verification;
+  const colorId = data.color_id.toLowerCase();
+  const prefix = colorId.substring(0, 2);
+  const tokenType = COLOR_ID_PREFIX_TO_TYPE[prefix];
+  const networkInfo = parseNetwork(data.network);
+
+  // Add version and tokenType for Metadata class
+  const fieldsWithType = {
+    version: '1.0',
+    tokenType: tokenType,
+    ...metadataFields
+  };
+
+  // Create Metadata instance (this also validates the metadata)
+  let metadata;
   try {
-    verification = verifyColorId(metadataFields, data.payment_base, data.color_id);
+    metadata = new Metadata(fieldsWithType);
   } catch (err) {
     const errorMessage = `Metadata validation error: ${err.message}`;
     console.error(errorMessage);
@@ -258,23 +374,69 @@ async function main() {
     process.exit(1);
   }
 
-  if (!verification.match) {
+  console.log(`Token type: ${tokenType}`);
+  console.log(`Metadata digest: ${metadata.digest().toString('hex')}`);
+
+  // Verify Color ID
+  let colorIdVerification;
+  if (prefix === 'c1') {
+    // Reissuable: verify using Payment Base
+    console.log('Verifying Color ID for Reissuable token...');
+    colorIdVerification = verifyReissuableColorId(metadata, data.payment_base, colorId);
+  } else {
+    // Non-Reissuable or NFT: verify using OutPoint
+    console.log('Verifying Color ID for Non-Reissuable/NFT token...');
+    const outPointIndex = parseInt(data.outpoint_index, 10);
+    colorIdVerification = verifyOutPointColorId(metadata, data.outpoint_txid, outPointIndex, colorId);
+  }
+
+  if (!colorIdVerification.match) {
     const errorMessage = `Color ID verification failed.\n` +
-      `- Expected: ${verification.expected}\n` +
-      `- Derived:  ${verification.derived}\n` +
-      `- Metadata digest: ${verification.metadataDigest}\n\n` +
-      `Please ensure the metadata JSON exactly matches what was used to derive the Color ID.\n\n` +
-      `Canonical form used for derivation:\n${verification.canonical}`;
+      `- Expected: ${colorIdVerification.expected}\n` +
+      `- Derived:  ${colorIdVerification.derived}\n` +
+      `- Metadata digest: ${metadata.digest().toString('hex')}\n\n` +
+      `Please ensure the metadata JSON and OutPoint exactly match what was used to derive the Color ID.\n\n` +
+      `Canonical form used for derivation:\n${metadata.toCanonical()}`;
     console.error(errorMessage);
     fs.writeFileSync('validation-error.txt', errorMessage);
     process.exit(1);
   }
 
   console.log('Color ID verified successfully');
-  console.log(`  Metadata digest: ${verification.metadataDigest}`);
 
-  const colorId = data.color_id.toLowerCase();
-  const networkInfo = parseNetwork(data.network);
+  // For c2/c3, also verify the OutPoint scriptPubkey matches P2C derived scriptPubkey
+  if (prefix === 'c2' || prefix === 'c3') {
+    console.log('Verifying OutPoint scriptPubkey matches P2C derived scriptPubkey...');
+    try {
+      const scriptVerification = await verifyOutPointScriptPubkey(
+        metadata,
+        data.payment_base,
+        networkInfo.explorerApi,
+        data.outpoint_txid,
+        parseInt(data.outpoint_index, 10)
+      );
+
+      if (!scriptVerification.match) {
+        const errorMessage = `OutPoint scriptPubkey verification failed.\n` +
+          `- Expected (from P2C): ${scriptVerification.expected}\n` +
+          `- Actual (from chain): ${scriptVerification.actual}\n` +
+          `- P2C pubkey: ${scriptVerification.p2cPubkey}\n\n` +
+          `The OutPoint's scriptPubkey does not match the P2C address derived from Payment Base and Metadata.`;
+        console.error(errorMessage);
+        fs.writeFileSync('validation-error.txt', errorMessage);
+        process.exit(1);
+      }
+
+      console.log('OutPoint scriptPubkey verified successfully');
+      console.log(`  P2C pubkey: ${scriptVerification.p2cPubkey}`);
+    } catch (err) {
+      const errorMessage = `Failed to verify OutPoint scriptPubkey: ${err.message}`;
+      console.error(errorMessage);
+      fs.writeFileSync('validation-error.txt', errorMessage);
+      process.exit(1);
+    }
+  }
+
   const networkId = networkInfo.id;
 
   // Check for existing token in network-specific directory
