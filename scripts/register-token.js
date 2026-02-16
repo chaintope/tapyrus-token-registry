@@ -283,11 +283,11 @@ async function fetchOutPointScriptPubkey(explorerApi, txid, index) {
   }
 
   const output = txData.vout[index];
-  if (!output.scriptPubKey || !output.scriptPubKey.hex) {
-    throw new Error(`scriptPubKey not found for output ${index} in transaction ${txid}`);
+  if (!output.scriptpubkey) {
+    throw new Error(`scriptpubkey not found for output ${index} in transaction ${txid}`);
   }
 
-  return Buffer.from(output.scriptPubKey.hex, 'hex');
+  return Buffer.from(output.scriptpubkey, 'hex');
 }
 
 /**
