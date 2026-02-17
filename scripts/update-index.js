@@ -93,10 +93,12 @@ function generateTokenRows(tokens, networkId) {
 
     return `
       <tr>
-        <td class="token-info">
-          ${icon}
-          <div class="token-details">
-            <strong>${escapeHtml(token.name)}</strong>
+        <td>
+          <div class="token-info">
+            ${icon}
+            <div class="token-details">
+              <strong>${escapeHtml(token.name)}</strong>
+            </div>
           </div>
         </td>
         <td>${escapeHtml(token.symbol)}</td>
