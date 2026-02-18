@@ -455,8 +455,19 @@ async function main() {
     process.exit(1);
   }
 
-  // Write metadata file (preserve original JSON exactly as input)
-  const jsonContent = JSON.stringify(metadataFields, null, 2);
+  // Build token data with verification info and metadata
+  const tokenData = {
+    payment_base: data.payment_base,
+  };
+  if (prefix === 'c2' || prefix === 'c3') {
+    tokenData.outpoint = {
+      txid: data.outpoint_txid,
+      index: parseInt(data.outpoint_index, 10)
+    };
+  }
+  tokenData.metadata = metadataFields;
+
+  const jsonContent = JSON.stringify(tokenData, null, 2);
   fs.writeFileSync(tokenPath, jsonContent + '\n');
   console.log(`Token metadata written to ${tokenPath}`);
 

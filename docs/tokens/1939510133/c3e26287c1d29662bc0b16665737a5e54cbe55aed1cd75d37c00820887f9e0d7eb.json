@@ -1,14 +1,21 @@
 {
-  "version": "1.0",
-  "name": "CT token",
-  "symbol": "CTT",
-  "decimals": 0,
-  "description": "テスト用NFT",
-  "icon": "https://www.chaintope.com/wp-content/themes/chaintope20250603/_asset/img/company/popup_kataoka.jpg.webp",
-  "website": "https://www.chaintope.com/",
-  "issuer": {
-    "name": "株式会社chaintope",
-    "url": "https://www.chaintope.com/"
+  "payment_base": "03587b18c41aa7dda894beadf6cf482f8ec6457f672ab28c1bee18096f6ee2901c",
+  "outpoint": {
+    "txid": "f408f358c2aeb0ba0f29d2e6974607e28b4d259fd8fa540fb32e507812a4c07c",
+    "index": 0
   },
-  "image": "https://www.chaintope.com/wp-content/themes/chaintope20250603/_asset/img/top/company_pic01.jpg.webp"
+  "metadata": {
+    "version": "1.0",
+    "name": "CT token",
+    "symbol": "CTT",
+    "decimals": 0,
+    "description": "テスト用NFT",
+    "icon": "https://www.chaintope.com/wp-content/themes/chaintope20250603/_asset/img/company/popup_kataoka.jpg.webp",
+    "website": "https://www.chaintope.com/",
+    "issuer": {
+      "name": "株式会社chaintope",
+      "url": "https://www.chaintope.com/"
+    },
+    "image": "https://www.chaintope.com/wp-content/themes/chaintope20250603/_asset/img/top/company_pic01.jpg.webp"
+  }
 }

@@ -1,6 +1,9 @@
 {
-  "icon": "https://www.chaintope.com/wp-content/themes/chaintope20250603/_asset/img/products/tapyrus/tapyrus__icon01.png",
-  "name": "Tapyrus Simple Token",
-  "symbol": "TST",
-  "version": "1.0"
+  "payment_base": "0362ebb65b7cb6cd2973c11a2eb017766d0ba7c9d961fc00e75fda102f2a23c8aa",
+  "metadata": {
+    "icon": "https://www.chaintope.com/wp-content/themes/chaintope20250603/_asset/img/products/tapyrus/tapyrus__icon01.png",
+    "name": "Tapyrus Simple Token",
+    "symbol": "TST",
+    "version": "1.0"
+  }
 }

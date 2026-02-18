@@ -31,7 +31,8 @@ function readTokens() {
     for (const file of files) {
       try {
         const content = fs.readFileSync(path.join(networkDir, file), 'utf8');
-        const metadata = JSON.parse(content);
+        const rawData = JSON.parse(content);
+        const metadata = rawData.metadata || rawData;
         const colorId = file.replace('.json', '');
         tokensByNetwork[network.id].push({
           color_id: colorId,
