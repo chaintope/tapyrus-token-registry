@@ -16,6 +16,7 @@ body:
     attributes:
       label: Network
       description: "Select the network where the token is issued (TIP-0044 compliant)"
+      default: 1
       options:
         - "Tapyrus API - Network ID: 15215628"
         - "Tapyrus Testnet - Network ID: 1939510133"
