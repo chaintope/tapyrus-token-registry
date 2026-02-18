@@ -1,0 +1,16 @@
+{
+  "payment_base": "03587b18c41aa7dda894beadf6cf482f8ec6457f672ab28c1bee18096f6ee2901c",
+  "outpoint": {
+    "txid": "ad3f993cc6d6d283fa2bcdc0761dd56b217fa7620bb470c499d82c7fa19f39ac",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "Non reissuable token",
+    "symbol": "NRT",
+    "decimals": 2,
+    "description": "再発行不可能なトークン",
+    "icon": "https://www.chaintope.com/wp-content/themes/chaintope20250603/_asset/img/top/company_pic01.jpg.webp",
+    "website": "https://www.chaintope.com/"
+  }
+}
