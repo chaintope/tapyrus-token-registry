@@ -1,0 +1,11 @@
+{
+  "payment_base": "03204b85c634f0579c49f868b9632d9ec7a818412aaa7fee3be09145fa884dafdd",
+  "metadata": {
+    "version": "1.0",
+    "name": "TIP20-sample",
+    "symbol": "T2S",
+    "decimals": 0,
+    "icon": "https://site.tapyrus.chaintope.com/assets/images/tip20-scheme.svg",
+    "website": "https://site.tapyrus.chaintope.com/colored-coin/spec"
+  }
+}
