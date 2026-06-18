@@ -1,0 +1,16 @@
+{
+  "payment_base": "024454d035a761b8eee3ef573a5ab1526e8b644b876bb47a6f70c191ba55fa4c64",
+  "metadata": {
+    "version": "1.0",
+    "name": "MyTestAsset",
+    "symbol": "MTA",
+    "decimals": 1,
+    "description": "テスト用トークン",
+    "icon": "https://private-user-images.githubusercontent.com/220267/609701975-678e1bf0-8729-4661-8b89-863f7700db92.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODE3NjcyMjAsIm5iZiI6MTc4MTc2NjkyMCwicGF0aCI6Ii8yMjAyNjcvNjA5NzAxOTc1LTY3OGUxYmYwLTg3MjktNDY2MS04Yjg5LTg2M2Y3NzAwZGI5Mi5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNjE4JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDYxOFQwNzE1MjBaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT01NTZiZTU1MzMxMmVmNjQxOGRjZmYwYmRhNWViNGJmZTRjNTEzMTQ2MjY2NzQyM2JlZDM4YzdhYzNiZGEyZmI5JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZyZXNwb25zZS1jb250ZW50LXR5cGU9aW1hZ2UlMkZwbmcifQ.58tOaqCsE4zgj7aZqop01IM0GN947ZfKmKM4y1V3w6Q",
+    "issuer": {
+      "name": "Yamaguchi",
+      "url": "https://github.com/Yamaguchi",
+      "email": "gen.yamaguchi0@gmail.com"
+    }
+  }
+}
