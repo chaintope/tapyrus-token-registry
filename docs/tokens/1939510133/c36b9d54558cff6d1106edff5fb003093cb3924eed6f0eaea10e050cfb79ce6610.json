@@ -1,0 +1,20 @@
+{
+  "payment_base": "024454d035a761b8eee3ef573a5ab1526e8b644b876bb47a6f70c191ba55fa4c64",
+  "outpoint": {
+    "txid": "2b37de90a6610acc003919c90193a763641a7713e1c526c3a2f4c228212776e1",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "MyTestNFT",
+    "symbol": "MTNFT",
+    "decimals": 0,
+    "description": "テスト用のNFT",
+    "issuer": {
+      "name": "Yamaguchi",
+      "url": "https://github.com/Yamaguchi",
+      "email": "gen.ymaguchi0@gmail.com"
+    },
+    "image": "https://avatars.githubusercontent.com/u/220267?v=4"
+  }
+}
