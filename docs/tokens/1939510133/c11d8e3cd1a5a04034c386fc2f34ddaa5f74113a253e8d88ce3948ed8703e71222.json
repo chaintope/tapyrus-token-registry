@@ -1,0 +1,10 @@
+{
+  "payment_base": "038cf0a8467b641cc5da9621790a443a6509f272a78e173aed3538cc729af6b4d5",
+  "metadata": {
+    "version": "1.0",
+    "name": "Awesome",
+    "symbol": "AWE",
+    "decimals": 0,
+    "description": "すごいトークン"
+  }
+}
