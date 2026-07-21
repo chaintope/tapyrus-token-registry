@@ -1,0 +1,14 @@
+{
+  "payment_base": "02c2daae118d6543306a9e47685dfe2ceec7fccd07ed4b423a2fa7fde5ff0b926f",
+  "outpoint": {
+    "txid": "19c395ae1123ff5cf5a777d5d73ae6f988d0a49da1f613410b2bf14211c7d5e5",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "Test Token #1 for Tapylet-for-web",
+    "symbol": "TT1",
+    "decimals": 0,
+    "icon": "https://yamaguchi.github.io/icons/8da25963-e44e-4ed7-996e-14474c35afbb.png"
+  }
+}
