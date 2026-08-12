@@ -1,0 +1,14 @@
+{
+  "payment_base": "034569658635ba9c9f96704fcfeff0466fbc2c6f692cf085f58784d1fc67f49b2b",
+  "outpoint": {
+    "txid": "e0faf04df82147e190c0a723705c5386b4c632eeffafa534497e92e76caace3d",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "TestToken9",
+    "symbol": "TT9",
+    "decimals": 0,
+    "icon": "https://yamaguchi.github.io/icons/music.png"
+  }
+}
