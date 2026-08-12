@@ -1,0 +1,14 @@
+{
+  "payment_base": "034569658635ba9c9f96704fcfeff0466fbc2c6f692cf085f58784d1fc67f49b2b",
+  "outpoint": {
+    "txid": "a5acb1f5c4b0c89f23b342558fa908bc956020cb5eee4f2a12cbbffd81691f4d",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "TestToken12",
+    "symbol": "TT12",
+    "decimals": 0,
+    "icon": "https://yamaguchi.github.io/icons/space.png"
+  }
+}
