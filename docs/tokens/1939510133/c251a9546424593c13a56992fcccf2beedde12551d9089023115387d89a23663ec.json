@@ -1,0 +1,14 @@
+{
+  "payment_base": "034569658635ba9c9f96704fcfeff0466fbc2c6f692cf085f58784d1fc67f49b2b",
+  "outpoint": {
+    "txid": "110eb36c3fb032e7b28c0e4a6b19cc94447118ab1a49c77439e8733e88247e85",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "TestToken7",
+    "symbol": "TT7",
+    "decimals": 0,
+    "icon": "https://yamaguchi.github.io/icons/3dprinter.png"
+  }
+}
