@@ -1,0 +1,14 @@
+{
+  "payment_base": "034569658635ba9c9f96704fcfeff0466fbc2c6f692cf085f58784d1fc67f49b2b",
+  "outpoint": {
+    "txid": "166ea2ce99c0732129ebfa1b3837bf33e3005cd5422312098ceb227b257e1fd6",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "TestToken10",
+    "symbol": "TT10",
+    "decimals": 0,
+    "icon": "https://yamaguchi.github.io/icons/craft.png"
+  }
+}
