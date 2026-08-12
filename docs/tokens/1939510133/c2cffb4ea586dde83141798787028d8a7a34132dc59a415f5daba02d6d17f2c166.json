@@ -1,0 +1,14 @@
+{
+  "payment_base": "034569658635ba9c9f96704fcfeff0466fbc2c6f692cf085f58784d1fc67f49b2b",
+  "outpoint": {
+    "txid": "c5f98dbcc2f3be9d5f7d674fa400f8f26d602457af9e7bcc43a6b8a9d1daa3a1",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "TestToken6",
+    "symbol": "TT6",
+    "decimals": 0,
+    "icon": "https://yamaguchi.github.io/icons/drone.png"
+  }
+}
