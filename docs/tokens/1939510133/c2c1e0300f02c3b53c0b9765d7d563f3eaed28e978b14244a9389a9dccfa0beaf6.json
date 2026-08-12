@@ -1,0 +1,15 @@
+{
+  "payment_base": "034569658635ba9c9f96704fcfeff0466fbc2c6f692cf085f58784d1fc67f49b2b",
+  "outpoint": {
+    "txid": "a78c163f7244efaa20f046f946345f54cc2b5cc1c64c984a483e624d87500686",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "TestToken5",
+    "symbol": "TT5",
+    "decimals": 0,
+    "description": "テスト用トークン",
+    "icon": "https://yamaguchi.github.io/icons/robot.png"
+  }
+}
