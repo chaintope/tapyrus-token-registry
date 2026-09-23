@@ -1,0 +1,15 @@
+{
+  "payment_base": "02baa3562df45b55c40fb6d55c9df1e2062e960830d3216ea739b943975d45018b",
+  "outpoint": {
+    "txid": "83bf4020be4a65df6be18fbc12c87f332412a19be8929a3442f559dae669d0f8",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "BOOTH1",
+    "symbol": "DD26TEST",
+    "decimals": 0,
+    "icon": "https://yamaguchi.github.io/icons/drone.png",
+    "website": "https://google.com"
+  }
+}
