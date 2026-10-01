@@ -1,0 +1,15 @@
+{
+  "payment_base": "037ead8fb99ad52d1081f67c0fb8bba93fe1dcbf05825ff279a3cf26640b7d158a",
+  "outpoint": {
+    "txid": "e0dc2c466022a6e381a3c53240eb097e9120230e83befb98236a962e2ba23c7a",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "test) 東急コミュニティー",
+    "symbol": "DD26",
+    "decimals": 0,
+    "icon": "https://digitaldays.city.co.jp/images/logo_tokyu.webp?202609",
+    "website": "https://www.tokyu-com.co.jp/"
+  }
+}
