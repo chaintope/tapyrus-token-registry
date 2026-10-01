@@ -1,0 +1,15 @@
+{
+  "payment_base": "037ead8fb99ad52d1081f67c0fb8bba93fe1dcbf05825ff279a3cf26640b7d158a",
+  "outpoint": {
+    "txid": "1b9fe786123486fa45fc4ac8d2d367cd02f3c47092f0ed925c1b714e80216444",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "test) オバケハンター",
+    "symbol": "DD26",
+    "decimals": 0,
+    "icon": "https://digitaldays.city.co.jp/images/thumb_obake.webp",
+    "website": "https://www.1-10.com/works/%E6%8B%A1%E5%BC%B5%E7%8F%BE%E5%AE%9F%E3%82%A2%E3%83%88%E3%83%A9%E3%82%AF%E3%82%B7%E3%83%A7%E3%83%B3%E3%80%8C%E3%82%AA%E3%83%90%E3%82%B1%E3%83%8F%E3%83%B3%E3%82%BF%E3%83%BC%E3%80%8D"
+  }
+}
