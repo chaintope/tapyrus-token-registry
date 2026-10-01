@@ -1,0 +1,15 @@
+{
+  "payment_base": "037ead8fb99ad52d1081f67c0fb8bba93fe1dcbf05825ff279a3cf26640b7d158a",
+  "outpoint": {
+    "txid": "76db6b0e7a259b783126d173df78b80832b8ab6be5f244d7116af516a564c4e6",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "test) わくわくプログラミング教室",
+    "symbol": "DD26",
+    "decimals": 0,
+    "icon": "https://digitaldays.city.co.jp/images/thumb_programming.webp?202609",
+    "website": "https://www.city.co.jp/news/20869/"
+  }
+}
