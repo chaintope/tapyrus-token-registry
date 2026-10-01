@@ -1,0 +1,15 @@
+{
+  "payment_base": "037ead8fb99ad52d1081f67c0fb8bba93fe1dcbf05825ff279a3cf26640b7d158a",
+  "outpoint": {
+    "txid": "f08307f165bb0729e233b432cac8c1e0b68772f55cbe430b41d5d71fb7c33be1",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "フルーツ診断",
+    "symbol": "DD26",
+    "decimals": 0,
+    "icon": "https://digitaldays.city.co.jp/images/logo_ncb.webp",
+    "website": "https://digram-coach.com/ncb/"
+  }
+}
