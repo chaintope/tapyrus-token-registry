@@ -1,0 +1,15 @@
+{
+  "payment_base": "037ead8fb99ad52d1081f67c0fb8bba93fe1dcbf05825ff279a3cf26640b7d158a",
+  "outpoint": {
+    "txid": "a2a4ad94f92ca9118e5c34db3648dd76096577f98631d0d6aa62d1b38e293207",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "ライジングゼファー福岡",
+    "symbol": "DD26",
+    "decimals": 0,
+    "icon": "https://digitaldays.city.co.jp/images/logo_rizing-zephyr.webp?202609",
+    "website": "https://r-zephyr.com/"
+  }
+}
