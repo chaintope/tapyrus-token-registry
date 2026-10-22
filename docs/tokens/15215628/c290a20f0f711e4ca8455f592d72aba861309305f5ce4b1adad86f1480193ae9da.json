@@ -1,0 +1,14 @@
+{
+  "payment_base": "037ead8fb99ad52d1081f67c0fb8bba93fe1dcbf05825ff279a3cf26640b7d158a",
+  "outpoint": {
+    "txid": "7eee494cf03f96a2ec4d8cb35a3ddff88c2551a5e241ffadf3680e0085794856",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "フルーツ診断",
+    "symbol": "DD2026",
+    "decimals": 0,
+    "icon": "https://digitaldays.city.co.jp/stamp/017_stamp_kyusyufruiteshindan_.png"
+  }
+}
