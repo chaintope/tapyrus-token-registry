@@ -1,0 +1,14 @@
+{
+  "payment_base": "037ead8fb99ad52d1081f67c0fb8bba93fe1dcbf05825ff279a3cf26640b7d158a",
+  "outpoint": {
+    "txid": "1c3e44e2172581af294284ec7a1f2ea0fc5633cdd24d3688592cd4c9d94673be",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "グラフト！",
+    "symbol": "DD2026",
+    "decimals": 0,
+    "icon": "https://digitaldays.city.co.jp/stamp/005_stamp_graft_.png"
+  }
+}
