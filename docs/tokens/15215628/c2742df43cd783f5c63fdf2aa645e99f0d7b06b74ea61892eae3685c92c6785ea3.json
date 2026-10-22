@@ -1,0 +1,14 @@
+{
+  "payment_base": "037ead8fb99ad52d1081f67c0fb8bba93fe1dcbf05825ff279a3cf26640b7d158a",
+  "outpoint": {
+    "txid": "2a7a4fc538648257de2e0e5fcdd47045cd1f1499a64b4badde2576c1aae2767f",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "オバケハンター",
+    "symbol": "DD2026",
+    "decimals": 0,
+    "icon": "https://digitaldays.city.co.jp/stamp/004_stamp_obakehunter_.png"
+  }
+}
