@@ -1,0 +1,14 @@
+{
+  "payment_base": "037ead8fb99ad52d1081f67c0fb8bba93fe1dcbf05825ff279a3cf26640b7d158a",
+  "outpoint": {
+    "txid": "ddc784db1e4913b6b6d0a358d512f4dc0681b94affe2c0c14b92425df1fb4251",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "MONSTER BATTLE",
+    "symbol": "DD2026",
+    "decimals": 0,
+    "icon": "https://digitaldays.city.co.jp/stamp/001_stamp_GZcapital_.png"
+  }
+}
