@@ -1,0 +1,14 @@
+{
+  "payment_base": "037ead8fb99ad52d1081f67c0fb8bba93fe1dcbf05825ff279a3cf26640b7d158a",
+  "outpoint": {
+    "txid": "7a3caf96d8353f49cd79c85a002276ddfa4e4a26e7d2c3623da7fead9d04333c",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "アローズラボ",
+    "symbol": "DD2026",
+    "decimals": 0,
+    "icon": "https://digitaldays.city.co.jp/stamp/002_stamp_arrowz_.png"
+  }
+}
