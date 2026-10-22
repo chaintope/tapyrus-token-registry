@@ -1,0 +1,14 @@
+{
+  "payment_base": "037ead8fb99ad52d1081f67c0fb8bba93fe1dcbf05825ff279a3cf26640b7d158a",
+  "outpoint": {
+    "txid": "1dfc63e071d8d227c7d33dc48f7dfdbf10b9a6ee44132b164c0e11f95c5fc37a",
+    "index": 0
+  },
+  "metadata": {
+    "version": "1.0",
+    "name": "わくわくプログラミング教室",
+    "symbol": "DD2026",
+    "decimals": 0,
+    "icon": "https://digitaldays.city.co.jp/stamp/011_stamp_cityascom_.png"
+  }
+}
